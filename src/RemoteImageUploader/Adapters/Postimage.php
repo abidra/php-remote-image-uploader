@@ -16,8 +16,8 @@ use Exception;
 class Postimage extends Factory implements Account
 {
     const UPLOAD_MAX_FILE_SIZE = 16777216; // 16MB - limited by postimage.
-    const GUEST_UPLOAD_ENDPOINT = 'http://postimage.org/';
-    const USER_UPLOAD_ENDPOINT = 'http://postimg.org/';
+    const GUEST_UPLOAD_ENDPOINT = 'http://old.postimage.org/';
+    const USER_UPLOAD_ENDPOINT = 'http://old.postimg.org/';
     const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:38.0) Gecko/20100101 Firefox/38.0';
 
     private $useAccount = false;
@@ -27,7 +27,7 @@ class Postimage extends Factory implements Account
      */
     public function getOptions()
     {
-        return parent::getOptions() + array(
+        return array_merge(parent::getOptions(), array(
             'username'   => null,
             'password'   => null,
 
@@ -36,7 +36,7 @@ class Postimage extends Factory implements Account
             // when you logged in.
             // http://postimg.org/my.php?gallery=GALLERY_ID
             'gallery' => null,
-        );
+        ));
     }
 
     /**
@@ -47,7 +47,7 @@ class Postimage extends Factory implements Account
         $this->useAccount = true;
 
         if (!$this->isLoggedIn()) {
-            $request = $this->createRequest('http://postimage.org/profile.php', 'POST')
+            $request = $this->createRequest('http://postimage.org/auth.php', 'POST')
                 ->withFormParam(array(
                     'login'    => $this['username'],
                     'password' => $this['password'],
@@ -130,7 +130,8 @@ class Postimage extends Factory implements Account
             ->withFormParam($params)
             ->withFollowRedirects(2)
             ->send();
-
+            $uri = $request->request['uri'];
+            $request = file_get_contents($uri);
         return $this->getImageUrl($request);
     }
 
@@ -157,7 +158,8 @@ class Postimage extends Factory implements Account
             ->withFormParam($params)
             ->withFollowRedirects(1)
             ->send();
-
+            $uri = $request->request['uri'];
+            $request = file_get_contents($uri);
         return $this->getImageUrl($request);
     }
 
